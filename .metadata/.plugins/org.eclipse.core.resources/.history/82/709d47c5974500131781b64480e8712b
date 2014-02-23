@@ -1,0 +1,50 @@
+package SearchEngine;
+import Application.*;
+import java.io.*;;
+
+public class SearchEngine {
+
+	public SearchEngine(MedicalDB db, Console cs) {
+		boolean flag = true;
+		
+		while(flag) {
+			Display();
+			int id = Input(cs);
+		}
+	}
+	
+	public void Display() {
+		System.out.println("Type 1 for Search all test records of a particular patient");
+		System.out.println("Type 2 for Search all test records prescribed by a given doctor over a particular period of time");
+		System.out.println("Type 3 for Search all patients who have reached alarming age of a given test type but havent taken the test");
+		System.out.println("Type 4 to exit to main menu");
+	}
+	
+	public int Input(Console cs) {
+		int id;
+		
+		while(true) {
+			
+			String input = cs.readLine();
+			if(input.matches("[1-4]")) {
+				id = Integer.parseInt(input);
+				return id;
+			}
+			else {
+				System.out.println("Please type an integer for your search options");
+				Display();
+			}
+			
+		}	
+	}
+	
+	public void SearchBy(int id) {
+		
+	}
+	/*
+	 * returns to main menu
+	 */
+	public void Exit() {
+		
+	}
+}

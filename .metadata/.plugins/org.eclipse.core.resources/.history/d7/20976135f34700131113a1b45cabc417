@@ -1,0 +1,70 @@
+package SearchEngine;
+import java.io.Console;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import Application.*;
+
+public class SearchByPatient {
+
+	public SearchByPatient(MedicalDB db, Console cs) {
+		while(true)
+		Diplay();
+		String name = Input(cs);
+		if(ListItems(db, name) == true) {
+			;
+		}
+		//}
+	}
+
+	private String Input(Console cs) {
+		// TODO Auto-generated method stub
+		String name = cs.readLine("Enter Name of Patient - ");
+		return name;
+	}
+
+	private boolean ListItems(MedicalDB mDB, String name) {
+		// TODO Auto-generated method stub
+		//SELECT STATMENTS and print
+		ResultSet rs, rs1;
+		
+		try {
+		
+			rs1 = mDB.connector.executeQuery("SELECT HEALTH_CARE_NO FROM PATIENT WHERE NAME='" +
+				name + "'");
+			if(rs1.next()) {
+				rs = mDB.connector.executeQuery("SELECT TYPE_ID, TEST_DATE, RESULT FROM TEST_RECORD WHERE " +
+					"PATIENT_NO=" + Integer.parseInt(rs1.getString(1)));
+			}
+			else {
+				System.out.println("Patient does not exist in database");
+				return false;
+			}
+		
+			if(!rs.first()) {
+				System.out.println("No records of patient in table test_record");
+				return false;
+			}
+
+			while(rs.next()) {
+				ResultSet rs2 = mDB.connector.executeQuery("SELECT TEST_NAME FROM TEST_TYPE WHERE TYPE_ID=" +
+						Integer.parseInt(rs.getString(1)));
+				rs2.next();
+				System.out.println(rs1.getString(1)+"\t" + name + "\t" + rs2.getString(0) + "\t" +
+						rs.getString(1) + "\t" + rs.getString(2));
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return true;
+		
+	}
+	
+	private void Diplay() {
+			// TODO Auto-generated method stub
+			
+	}
+}

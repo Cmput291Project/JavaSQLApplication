@@ -1,0 +1,23 @@
+package Application;
+
+import java.io.*;
+
+import MedicalTest.*;
+
+public class Main {
+
+	public static void main(String[] args) {
+		
+		Console cs = System.console();
+		String username = cs.readLine("Username : ");
+		char[] passwordChar = cs.readPassword()
+		String password = passwordChar.toString();
+		System.out.println(password);
+		MedicalDB temp = new MedicalDB(username, password.toString());
+		//temp.createDB();
+		//temp.insertMovies();
+		MainMenu mM = new MainMenu(temp, cs);
+		//MedicalTest mt = new MedicalTest(temp);
+		temp.close();
+	}
+}

@@ -1,0 +1,153 @@
+package SearchEngine;
+import java.io.Console;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import Application.*;
+
+public class SearchByDate {
+
+	public SearchByDate(MedicalDB db, Console cs) {
+		
+		Diplay();
+		String[] values = Input(cs, db);
+		ListItems(db, values);
+		//}
+	}
+
+	private String[] Input(Console cs, MedicalDB mDB) {
+		// TODO Auto-generated method stub
+		String health_care_no = CheckForInput(mDB, cs, 1);
+		String starting_date = CheckForInput(mDB, cs, 2);
+		String ending_date = CheckForInput(mDB, cs, 3);
+		
+		String values[] = new String[3];
+		values[0] = health_care_no;
+		values[1] = starting_date;
+		values[2] = ending_date;
+		return values;
+	}
+
+	private boolean ListItems(MedicalDB mDB, String employee_no, int type) {
+		// TODO Auto-generated method stub
+		//SELECT STATMENTS and print
+		ResultSet rs = null;
+		
+		try {
+		
+			if(type == 1) {
+				rs = mDB.connector.executeQuery("SELECT PATIENT_NO, NAME, TEST_NAME, TEST_DATE, " +
+					"RESULT FROM TEST_RECORD, PATIENT, TEST_TYPE WHERE PATIENT_NO=" +
+					employee_no +" AND PATIENT_NO=HEALTH_CARE_NO AND TEST_TYPE.TYPE_ID = TEST_RECORD.TYPE_ID" +
+					"ORDER");
+			}
+			else if(type == 2) {
+				rs = mDB.connector.executeQuery("SELECT PATIENT_NO, NAME, TEST_NAME, TEST_DATE, " +
+						"RESULT FROM TEST_RECORD, PATIENT WHERE NAME LIKE '%" + health_care_no + "%' " +
+						"AND PATIENT_NO=HEALTH_CARE_NO AND TEST_TYPE.TYPE_ID = TEST_RECORD.TYPE_ID " +
+						"ORDER");
+			}
+		
+			if(!rs.first()) {
+				System.out.println("No records of patient in table test_record");
+				return false;
+			}
+			
+			else {
+				rs.beforeFirst();
+			}
+			
+
+			while(rs.next()) {
+				System.out.println(rs.getString(1)+"\t" + rs.getString(2) + "\t" + rs.getString(3) + "\t" +
+						rs.getString(4) + "\t" + rs.getString(5));
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return true;
+		
+	}
+	
+	private String CheckForInput(MedicalDB mDB, Console cs, int type) {
+		
+		boolean correct = true;
+		while(correct) {
+			if(type == 1) {
+				String employee_no = cs.readLine("Enter Employee number or Name of doctor - ");
+				if(employee_no.matches("[0-9]+")) {
+					return employee_no;
+				}
+				else {
+					System.out.println("Health care number is not a number. Try again.!!");
+				}
+			}
+			else if(type == 2) {
+				String birth_day = cs.readLine("Enter starting date of search in yyyymmdd format -");
+				if(birth_day.matches("[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]")) {
+					return birth_day;
+				}
+				else {
+					System.out.println("Date in wrong format. Try again.");
+				}
+			}
+			else if(type == 3) {
+
+				String birth_day = cs.readLine("Enter ending date of search in yyyymmdd format -");
+				if(birth_day.matches("[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]")) {
+					return birth_day;
+				}
+				else {
+						System.out.println("Date in wrong format. Try again.");
+				}
+			}
+		}
+		return "";
+	}
+	
+	private String CheckForDoctor(MedicalDB mDB, Console cs) {
+		// TODO Auto-generated method stub
+		boolean correct = true;
+		
+		try {
+			while(correct) {
+				String employee_no = cs.readLine("Enter name or employee number of doctor -");
+				if(employee_no.matches("[0-9]+")) {
+					ResultSet rs = mDB.connector.executeQuery("SELECT EMPLOYEE_NO FROM DOCTOR WHERE" +
+							" EMPLOYEE_NO=" + Integer.parseInt(employee_no));
+					if(rs.first()) {
+						ListItems(mDB, employee_no, 1);
+						return employee_no;
+					}
+					else {
+						System.out.println("Health Care Number does not exist in table patient");
+					}
+				}
+				else {
+					ResultSet rs = mDB.connector.executeQuery("SELECT NAME,HEALTH_CARE_NO FROM PATIENT WHERE " +
+								"NAME LIKE '%" + health_care_no +"%'");
+					if(rs.first()) {
+						ListItems(mDB, health_care_no, 2);
+						return rs.getString(1);
+					}
+					else {
+						System.out.println("Name does not exist in table patient");
+					}
+					
+				}
+			}
+		}	catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	private void Diplay() {
+			// TODO Auto-generated method stub
+			
+	}
+}

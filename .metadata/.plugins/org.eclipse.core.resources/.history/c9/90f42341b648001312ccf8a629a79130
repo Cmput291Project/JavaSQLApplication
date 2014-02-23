@@ -1,0 +1,164 @@
+package SearchEngine;
+import java.io.Console;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import Application.*;
+
+public class SearchByDate {
+
+	public SearchByDate(MedicalDB db, Console cs) {
+		
+		Diplay();
+		Input(cs, db);
+		//ListItems(db, values);
+		//}
+	}
+
+	private boolean Input(Console cs, MedicalDB mDB) {
+		// TODO Auto-generated method stub
+		String health_care_no = CheckForDoctor(mDB, cs);
+		
+		return true;
+	}
+
+	private boolean ListItems(MedicalDB mDB, String[] values, int type) {
+		// TODO Auto-generated method stub
+		//SELECT STATMENTS and print
+		ResultSet rs = null;
+		
+		try {
+		
+			if(type == 1) {
+				rs = mDB.connector.executeQuery("SELECT PATIENT_NO, NAME, TEST_NAME, PRESCRIBE_DATE " +
+					"FROM TEST_RECORD, PATIENT, TEST_TYPE WHERE PATIENT_NO=HEALTH_CARE_NO AND " +
+					"AND EMPLOYEE_NO=" + values[0] +"  AND TEST_TYPE.TYPE_ID = TEST_RECORD.TYPE_ID " +
+					"AND PRESCRIBE_DATE>=TO_DATE('" + values[1] + "', 'yyyymmdd') AND " +
+					"PRESCRIBE_DATE<=TO_DATE('" + values[2] + "', 'yyyymmdd') " + 
+					"ORDER BY PATIENT_NO, NAME, TEST_NAME, PRESCRIBE_DATE");
+			}
+			else if(type == 2) {
+				rs = mDB.connector.executeQuery("SELECT PATIENT_NO, p1.NAME, TEST_NAME, PRESCRIBE_DATE " +
+						"FROM TEST_RECORD, PATIENT p1, PATIENT p2, DOCTOR, TEST_TYPE WHERE " +
+						"p2.NAME LIKE '%" + values[0] + "%' " +
+						"AND PATIENT_NO=p1.HEALTH_CARE_NO AND TEST_TYPE.TYPE_ID = TEST_RECORD.TYPE_ID " +
+						"AND p2.HEALTH_CARE_NO=DOCTOR.HEALTH_CARE_NO AND DOCTOR.EMPLOYEE_NO=" +
+						"TEST_RECORD.EMPLOYEE_NO " +
+						"AND PRESCRIBE_DATE>=TO_DATE('" + values[1] + "', 'yyyymmdd') AND " +
+						"PRESCRIBE_DATE<=TO_DATE('" + values[2] + "', 'yyyymmdd') " +
+						"ORDER BY PATIENT_NO, p1.NAME, TEST_NAME, PRESCRIBE_DATE");
+			}
+		
+			if(!rs.first()) {
+				System.out.println("No records of patient in table test_record");
+				return false;
+			}
+			
+			else {
+				rs.beforeFirst();
+			}
+			
+
+			while(rs.next()) {
+				System.out.println(rs.getString(1)+"\t" + rs.getString(2) + "\t" + rs.getString(3) + "\t" +
+						rs.getString(4) + "\t" + rs.getString(5));
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return true;
+		
+	}
+	
+	private String CheckForInput(MedicalDB mDB, Console cs, int type) {
+		
+		boolean correct = true;
+		while(correct) {
+			if(type == 1) {
+				String employee_no = cs.readLine("Enter Employee number or Name of doctor - ");
+				if(employee_no.matches("[0-9]+")) {
+					return employee_no;
+				}
+				else {
+					System.out.println("Health care number is not a number. Try again.!!");
+				}
+			}
+			else if(type == 2) {
+				String birth_day = cs.readLine("Enter starting date of search in yyyymmdd format -");
+				if(birth_day.matches("[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]")) {
+					return birth_day;
+				}
+				else {
+					System.out.println("Date in wrong format. Try again.");
+				}
+			}
+			else if(type == 3) {
+
+				String birth_day = cs.readLine("Enter ending date of search in yyyymmdd format -");
+				if(birth_day.matches("[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]")) {
+					return birth_day;
+				}
+				else {
+						System.out.println("Date in wrong format. Try again.");
+				}
+			}
+		}
+		return "";
+	}
+	
+	private String CheckForDoctor(MedicalDB mDB, Console cs) {
+		// TODO Auto-generated method stub
+		boolean correct = true;
+		
+		try {
+			while(correct) {
+				String employee_no = cs.readLine("Enter name or employee number of doctor -");
+				if(employee_no.matches("[0-9]+")) {
+					ResultSet rs = mDB.connector.executeQuery("SELECT EMPLOYEE_NO FROM DOCTOR WHERE" +
+							" EMPLOYEE_NO=" + Integer.parseInt(employee_no));
+					if(rs.first()) {
+
+						String values[] = new String[3];
+						values[0] = employee_no;
+						values[1] = CheckForInput(mDB, cs, 3);
+						values[2] = CheckForInput(mDB, cs, 2);
+						ListItems(mDB, values, 1);
+						return employee_no;
+					}
+					else {
+						System.out.println("Health Care Number does not exist in table patient");
+					}
+				}
+				else {
+					ResultSet rs = mDB.connector.executeQuery("SELECT NAME FROM PATIENT, DOCTOR WHERE " +
+								"NAME LIKE '%" + employee_no +"%' AND PATIENT.HEALTH_CARE_NO = DOCTOR.HEALTH_CARE_NO");
+					if(rs.first()) {
+						
+						String values[] = new String[3];
+						values[0] = employee_no;
+						values[1] = CheckForInput(mDB, cs, 2);
+						values[2] = CheckForInput(mDB, cs, 3);
+						ListItems(mDB, values, 2);
+						return rs.getString(1);
+					}
+					else {
+						System.out.println("Name does not exist in table patient");
+					}
+					
+				}
+			}
+		}	catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	private void Diplay() {
+			// TODO Auto-generated method stub
+			
+	}
+}

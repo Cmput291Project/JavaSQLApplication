@@ -1,0 +1,20 @@
+package Application;
+
+import java.io.*;
+
+import MedicalTest.*;
+
+public class Main {
+
+	public static void main(String[] args) {
+		
+		Console cs = System.console();
+		String input = cs.readLine("sfd");
+		MedicalDB temp = new MedicalDB();
+		//temp.createDB();
+		//temp.insertMovies();
+		MainMenu mM = new MainMenu(temp);
+		//MedicalTest mt = new MedicalTest(temp);
+		temp.close();
+	}
+}

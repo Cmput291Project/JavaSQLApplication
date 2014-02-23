@@ -1,0 +1,10 @@
+package Application;
+
+import java.io.Console;
+
+public interface Loader {
+
+	void Display();
+	int Input(int id);
+	//int CheckForInput(MedicalDB mDB, Console cs, int type);
+}

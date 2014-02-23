@@ -1,0 +1,33 @@
+package SearchEngine;
+import Application.*;
+
+public class SearchEngine {
+
+	public SearchEngine(MedicalDB db) {
+		boolean flag = true;
+		
+		while(flag) {
+			Display();
+			Input();
+		}
+	}
+	
+	public void Display() {
+		
+	}
+	
+	public int Input() {
+		int i = 0;
+		return i;
+	}
+	
+	public void SearchBy(int id) {
+		
+	}
+	/*
+	 * returns to main menu
+	 */
+	public void Exit() {
+		
+	}
+}

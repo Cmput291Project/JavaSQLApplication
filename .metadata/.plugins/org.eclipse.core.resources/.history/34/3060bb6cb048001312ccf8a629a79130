@@ -1,0 +1,231 @@
+package Prescription;
+import Application.*;
+
+import java.io.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+/*
+ * Adds new record to test_record, based upon patient information.
+ */
+
+public class Prescription implements Loader {
+
+	/*
+	 * Constructor for Module Prescription
+	 */
+	public Prescription(MedicalDB mDB, Console cs) {
+		boolean flag = true;
+		while(flag) {
+			Display();
+			if(Input(cs) == 1) {
+				flag = AddNew(mDB, cs);
+			}
+			else {
+				System.out.println("Thank you for using the prescription module");
+				flag = false;
+			}
+		}
+	}
+	
+	/*
+	 * Handles input from doctor , information about patient
+	 */
+	public int Input(Console cs) {
+		int id;
+		while(true) {
+			
+			String input = cs.readLine();
+			if(input.matches("[1-2]")) {
+				id = Integer.parseInt(input);
+				return id;
+			}
+			else {
+				System.out.println("Please type an integer for your module options");
+				Display();
+			}
+			
+		}		
+	}
+	
+	/*
+	 * Updates MedicalDB using test_id, updates test_records
+	 */
+	private boolean AddNew(MedicalDB mDB, Console cs) {
+		
+		ResultSet rs = mDB.connector.executeQuery("SELECT MAX(TEST_ID) FROM TEST_RECORD");
+		int test_id;
+		
+		int employee_no = Integer.parseInt(CheckForDoctor(mDB, cs));
+		int patient_no = Integer.parseInt(CheckForPatient(mDB, cs ));
+		int type_id = Integer.parseInt(CheckForInput(mDB, cs, 3));
+		String presc_date = CheckForInput(mDB, cs, 4);
+		
+		if(CheckIfNotAllowed(mDB,type_id, patient_no)) {
+			System.out.println("Patient not allowed to take test");
+			return false;
+		}
+		try {
+			if(rs.next()) { 
+				test_id = Integer.parseInt(rs.getString(1)) + 1;
+			}
+			else {
+				System.out.println("No test record exists in database");
+				return false;
+			}
+			String query = "INSERT INTO TEST_RECORD VALUES(" + 
+					test_id + ", " + type_id + ", " + patient_no + ", " + employee_no + ", " +
+					"TO_DATE('"+presc_date + "', 'yyyymmdd'), NULL, NULL, NULL)";
+			System.out.println(query);
+			Boolean rs1 = mDB.connector.executeNonQuery(query);
+			return false;
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return true;
+	}
+	
+	private boolean CheckIfNotAllowed(MedicalDB mDB, int type_id, int patient_no) {
+		// TODO Auto-generated method stub
+		ResultSet rs = mDB.connector.executeQuery("SELECT * FROM NOT_ALLOWED WHERE HEALTH_CARE_NO=" +
+				patient_no + " AND TYPE_ID=" + type_id);
+		try {
+			if(!rs.first())
+				return true;
+			else
+				return false;
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	private String CheckForInput(MedicalDB mDB, Console cs, int type) {
+		// TODO Auto-generated method stub
+		boolean correct = true;
+		
+		try {
+			while(correct) {
+				
+				if(type == 3) {
+					String type_name = cs.readLine("Medical Test Type Name - ");
+					ResultSet rs = mDB.connector.executeQuery("SELECT type_id FROM test_type WHERE test_name='"+ type_name +"'");
+					if(rs.next()) {
+						return rs.getString(1);
+					}
+					else {
+						System.out.println("Medical test type does not exist please try again.");
+					}
+				}
+				else if(type == 4) {
+					String presc_date = cs.readLine("Enter Prescription Date in yyyymmdd format -");
+					if(presc_date.matches("[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]")) {
+						return presc_date;
+					}
+					else {
+							System.out.println("Date in wrong format. Try again.");
+					}
+				}
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return "";
+	}
+
+	/*
+	 * Error checking
+	 */
+	private String CheckForPatient(MedicalDB mDB, Console cs) {
+		
+		boolean correct = true;
+		
+		try {
+			while(correct) {
+
+				String health_care_no = cs.readLine("Enter Health Care Number or Name of Patient - ");
+				if(health_care_no.matches("[0-9]+")) {
+					ResultSet rs = mDB.connector.executeQuery("SELECT HEALTH_CARE_NO FROM PATIENT WHERE" +
+							" HEALTH_CARE_NO=" + Integer.parseInt(health_care_no));
+					if(rs.first()) {
+						return health_care_no;
+					}
+					else {
+						System.out.println("Health Care Number does not exist in table patient");
+					}
+				}
+				else {
+					ResultSet rs = mDB.connector.executeQuery("SELECT HEALTH_CARE_NO, NAME FROM PATIENT WHERE" +
+							" NAME LIKE '%" + health_care_no+ "%'");
+					if(!rs.first()) {
+						System.out.println("Name does not exist in table patient");
+					}
+					else {
+						rs.beforeFirst();
+					}
+					while(rs.next()) {
+						System.out.println(rs.getString(1) + '\t' + rs.getString(2));
+					}
+					health_care_no = cs.readLine("Please select a patient by typing health care no - ");
+					
+				}
+			}
+		}
+		catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return "";
+	}
+	
+	private String CheckForDoctor(MedicalDB mDB, Console cs) {
+		
+		boolean correct = true;
+		
+		try {
+			while(correct) {
+
+				String employee_no = cs.readLine("Enter Employee Number or Name of Doctor - ");
+				if(employee_no.matches("[0-9]+")) {
+					ResultSet rs = mDB.connector.executeQuery("SELECT EMPLOYEE_NO FROM DOCTOR WHERE" +
+							" EMPLOYEE_NO=" + Integer.parseInt(employee_no));
+					if(rs.first()) {
+						return employee_no;
+					}
+					else {
+						System.out.println("Employee number does not exist in table doctor");
+					}
+				}
+				else {
+					ResultSet rs = mDB.connector.executeQuery("SELECT EMPLOYEE_NO, NAME FROM PATIENT, DOCTOR WHERE" +
+							" NAME='%" + employee_no+ "%' AND PATIENT.HEALTH_CARE_NO = DOCTOR.HEALTH_CARE_NO");
+					if(!rs.first()) {
+						System.out.println("Name does not exist in table patient");
+					}
+					else {
+						rs.beforeFirst();
+					}
+					while(rs.next()) {
+						System.out.println(rs.getString(1) + "\t" + rs.getString(2));
+					}
+					employee_no = cs.readLine("Select a doctor by entering the employee_no - ");
+				}
+			}
+		}
+		catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return "";
+	}
+	
+	public void Display() {
+		System.out.println("Type 1 to enter information about a prescribed medical test");
+		System.out.println("Type 2 to exit Prescription module");
+	}
+
+}

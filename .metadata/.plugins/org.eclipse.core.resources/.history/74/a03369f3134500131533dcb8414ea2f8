@@ -1,0 +1,111 @@
+package Application;
+
+import java.io.*;
+/*
+ * A description of class MainMenu which handles input from user as to
+ * what module he/she likes to use.
+ */
+
+import MedicalTest.*;
+import Prescription.*;
+import PatientUpdate.*;
+import SearchEngine.*;
+
+public class MainMenu {
+
+	
+	public MainMenu(MedicalDB mDB) {
+
+		Console cs = System.console();
+		String input = cs.readLine("sfd");
+		
+		boolean flag = true;
+		while(flag) {
+			Display();
+			int id = Input(cs);
+			
+			switch (id) {
+				case 1 :
+					Prescription pR = new Prescription(mDB);
+					break;
+				
+				case 2 :
+					MedicalTest mT = new MedicalTest(mDB);
+					break;
+					
+				case 3:
+					PatientUpdate pU = new PatientUpdate(mDB);
+					break;
+					
+				case 4:
+					SearchEngine sE = new SearchEngine(mDB);	
+					break;
+				case 5:
+					flag = false;
+					System.out.println("Thank you for using the application");
+					
+			}
+		//Console cs = System.console();
+		//String input = cs.readLine("sfd");
+		}
+	}
+	
+	/*
+	 * Displays the main menu : 4 choices of modules inside the application
+	 */
+	
+	private static void Display() {
+		System.out.println("Welcome to the Medical Database Application");
+		System.out.println("Please type an integer corresponding to the appropriate module");
+		System.out.println("Type 1 for Prescription");
+		System.out.println("Type 2 for MedicalTest");
+		System.out.println("Type 3 for PatientUpdate");
+		System.out.println("Type 4 for SearchEngine");
+		System.out.println("Type 5 for Exit");
+	}
+	
+	/*
+	 * Returns the id of the module typed by the user. Needs InputOutput stream
+	 * to get the value from the terminal. Buffered Reader class to be used.
+	 */
+	
+	private static int Input(Console cs) {
+		
+		int id = 1;
+		
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		
+		while(true) {
+			try {
+				String input = cs.readLine();
+				if(input.matches("[1-5]")) {
+					id = Integer.parseInt(input);
+					return id;
+				}
+				else {
+					System.out.println("Please type an integer for your module options");
+					Display();
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	/*
+	 * Starts a module with id of the module. Case by case basis of id
+	 * creating a particular object of the preferred module class.
+	 */
+	private void StartModule(int id) {
+		
+	}
+	
+	/*
+	 * Upon the right id of exit, the application exits, writing a messages
+	 */
+	private void Exit() {
+		
+	}
+
+}

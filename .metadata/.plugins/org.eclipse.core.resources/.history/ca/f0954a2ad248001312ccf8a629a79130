@@ -1,0 +1,27 @@
+package Application;
+
+import java.io.*;
+
+import MedicalTest.*;
+
+/*
+ * Main class that contains main() function to
+ * be called by JVM
+ */
+public class Main {
+
+	public static void main(String[] args) {
+		
+		Console cs = System.console();
+		String username = cs.readLine("Username : ");
+		char[] passwordChar=cs.readPassword();
+		String password = new String(passwordChar);
+
+		MedicalDB temp = new MedicalDB(username, password.toString());
+
+		if(temp.connector != null) {
+			MainMenu mM = new MainMenu(temp, cs);
+			temp.close();
+		}
+	}
+}

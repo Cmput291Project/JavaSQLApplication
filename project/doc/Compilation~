@@ -1,0 +1,6 @@
+***291 Project 1 by Tanvir Sajed, Sabrina Gannon
+
+
+
+tsajed@ua01:~/Documents/C291/Project/Project291>javac -sourcepath src -d bin -cp .:/oracle/jdbc/lib/ojdbc5.jar  src/**/*.java
+tsajed@ua01:~/Documents/C291/Project/Project291>java -cp .:bin:**/*.class:/oracle/jdbc/lib/ojdbc5.jar Application.Main

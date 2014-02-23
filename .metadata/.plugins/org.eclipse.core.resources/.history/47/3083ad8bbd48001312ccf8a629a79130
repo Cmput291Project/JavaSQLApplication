@@ -1,0 +1,126 @@
+package SearchEngine;
+import Application.*;
+import java.io.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+public class SearchByTestName {
+
+	public SearchByTestName(MedicalDB db, Console cs) {
+		boolean flag = true;
+		CreateView(db, cs);
+		
+		while(flag) {
+			Diplay();
+			String test_type = "";
+			test_type = Input(db, cs);
+			if(test_type != null) {
+				if(test_type.contains("-1")){
+					break;
+				}
+				else if(ListItems(db,test_type) == true) {
+					flag = false;
+				}
+			}
+		}
+		boolean rs1 = db.connector.executeNonQuery("DROP VIEW medical_risk");
+	}
+
+	private String Input(MedicalDB mDB, Console cs) {
+		// TODO Auto-generated method stub
+		String test_name = cs.readLine("Enter the name of test or type -1 to exit - ");
+		if(test_name.contains("-1")) {
+			return test_name;
+		}
+		ResultSet rs = mDB.connector.executeQuery("SELECT TEST_NAME FROM TEST_TYPE WHERE TEST_NAME LIKE'%" + 
+				test_name + "%'");
+		try {
+			if(!rs.first()) {
+				System.out.println("No such test name exists");
+				return null;
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return test_name;
+	}
+
+	private boolean ListItems(MedicalDB mDB, String test_name) {
+		// TODO Auto-generated method stub
+		//SELECT STATMENTS and print
+		//create view medical_risk from number 8 of assignment 2;
+		ResultSet rs = mDB.connector.executeQuery("SELECT DISTINCT health_care_no, name, address, phone " +
+							"FROM   patient p, medical_risk m, test_type tt " +
+							"WHERE  trunc(months_between(sysdate,birth_day)/12) >= m.alarming_age " +
+							"AND tt.test_name like '%" + test_name + "%' AND tt.type_id=m.medical_type AND " + 
+							"AND p.health_care_no NOT IN (SELECT patient_no " +
+                                "FROM   test_record t " +
+                                "WHERE  m.medical_type=t.type_id)" +
+                                " ORDER BY health_care_no, name, address, phone");
+		
+		//ResultSet rs1 = mDB.connector.executeQuery("SELECT TYPE_ID FROM TEST_TYPE WHERE TEST_NAME='" + 
+				//test_type + "'");
+		
+		try {
+			if(!rs.first()) {
+				System.out.println("No records in medical_risk");
+				return false;
+			}
+			else {
+				rs.beforeFirst();
+			}
+			
+			while(rs.next()) {
+				
+				System.out.println(rs.getString(1) +"\t" + rs.getString(2)+ "\t" + rs.getString(3) + "\t" +
+					rs.getString(4));
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return true;
+		
+	}
+	
+	private boolean CreateView(MedicalDB mDB, Console cs) {
+		
+		boolean rs = mDB.connector.executeNonQuery("CREATE VIEW medical_risk(medical_type,alarming_age,abnormal_rate) AS " +
+				"SELECT c1.type_id,min(c1.age),ab_rate " +
+				"FROM " + 
+				"(SELECT   t1.type_id, count(distinct t1.patient_no)/count(distinct t2.patient_no) ab_rate " +
+				"FROM     test_record t1, test_record t2 " +
+				"WHERE    t1.result <> 'normal' AND t1.type_id = t2.type_id " +
+				"GROUP BY t1.type_id " +
+				") r, " +
+				"(SELECT   t1.type_id,age,COUNT(distinct p1.health_care_no) AS ab_cnt " +
+						"FROM     patient p1,test_record t1, " +
+						"(SELECT DISTINCT trunc(months_between(sysdate,p1.birth_day)/12) AS age FROM patient p1) " +
+						"WHERE    trunc(months_between(sysdate,p1.birth_day)/12)>=age " +
+						"AND p1.health_care_no=t1.patient_no " +
+						"AND t1.result<>'normal' " +
+						"GROUP BY age,t1.type_id " +
+				") c1, " + 
+				"(SELECT  t1.type_id,age,COUNT(distinct p1.health_care_no) AS cnt " +
+						"FROM    patient p1, test_record t1, " +
+						"(SELECT DISTINCT trunc(months_between(sysdate,p1.birth_day)/12) AS age FROM patient p1) " +
+						"WHERE trunc(months_between(sysdate,p1.birth_day)/12)>=age " +
+						"AND p1.health_care_no=t1.patient_no " +
+						"GROUP BY age,t1.type_id " +
+						") c2 " +
+						"WHERE  c1.age = c2.age AND c1.type_id = c2.type_id AND c1.type_id = r.type_id " +
+						"AND c1.ab_cnt/c2.cnt>=2*r.ab_rate " +
+						"GROUP BY c1.type_id,ab_rate");
+		if(rs == false) {
+			System.out.println("Query did not work");
+			return rs;
+		}
+		return rs;
+	}
+
+	private void Diplay() {
+		// TODO Auto-generated method stub
+		
+	}
+}

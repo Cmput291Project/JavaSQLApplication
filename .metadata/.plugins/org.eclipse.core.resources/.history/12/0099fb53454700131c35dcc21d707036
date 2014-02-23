@@ -1,0 +1,103 @@
+package MedicalTest;
+import Application.*;
+import java.io.*;
+import java.sql.*;
+
+public class MedicalTest {
+
+	public MedicalTest(MedicalDB mDB, Console cs) {
+		while(true) {
+		
+			Display();
+			String values[] = Input(cs);
+			//String id = CheckForEntry(values, mDB);
+			//if(!(id.contentEquals(""))) {
+				Update(values, mDB, cs);
+			//}
+			//else {
+				System.out.println("test entry does not exist!!");
+			//}
+		}
+		
+	}
+	
+	private void Display() {
+		System.out.println("Add a completed medical test entry to table test_record.");
+	}
+	
+	private String[] Input(Console cs) {
+		String health_c_no = cs.readLine("Patient Health Care Name - ");
+		String employee_no = cs.readLine("Doctor Employee Name - ");
+		String type_id = cs.readLine("Medical Test Type Name - ");
+		//String prescribe_date = cs.readLine("Prescription Date - ");
+		
+		String values[] = new String[4];
+		values[0] = health_c_no;
+		values[1] = employee_no;
+		values[2] = type_id;
+		//values[3] = prescribe_date;
+		
+		return values;
+	}
+	
+	
+	private int Update(String values[], MedicalDB mDB, Console cs) {
+		
+		ResultSet rs1 = mDB.connector.executeQuery("SELECT employee_no FROM doctor WHERE name='" + values[1]+"'");
+		ResultSet rs2 = mDB.connector.executeQuery("SELECT health_care_no FROM patient WHERE name='"+values[0] +"'");
+		ResultSet rs3 = mDB.connector.executeQuery("SELECT type_id FROM test_type WHERE test_name='"+ values[2] +"'");
+		int[] updateValues = new int[3];
+		
+		try {
+			if(rs1.next() && rs2.next() && rs2.next()) {
+				updateValues[0] = Integer.parseInt(rs2.getString(1));
+				updateValues[1] = Integer.parseInt(rs1.getString(1));
+				updateValues[2] = Integer.parseInt(rs3.getString(1));
+			}
+			else {
+				System.out.println("You have typed wrong information. Try again");
+				return 0;
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		//update test record get some inputs some way
+		String test_date = cs.readLine("Enter Test Date in yyyymmdd format -");
+		String test_result = cs.readLine("Enter Test Result - ");
+		String lab_name = cs.readLine("Enter Medical Lab Name - ");
+		
+		String query = "UPDATE TEST_RECORD SET " +	"TEST_DATE=TO_DATE('" + test_date + 
+				"','yyyymmdd'), RESULT='" + test_result + "', MEDICAL_LAB='" + lab_name + 
+				"' WHERE PATIENT_NO=" + updateValues[0] + " AND EMPLOYEE_NO=" + updateValues[1] + " AND TYPE_ID=" +
+				updateValues[2];// +  " AND PRESCRIBE_DATE=" + values[3];
+		
+		Boolean rs = mDB.connector.executeNonQuery(query);
+		return 1;
+	}
+	
+	private String CheckForEntry(String[] values, MedicalDB mDB) {
+		String id = "";
+		
+		ResultSet rs = mDB.connector.executeQuery("SELECT test_id FROM" +
+				" TEST_RECORD WHERE PATIENT_NO = " + values[0] +
+				" AND EMPLOYEE_NO = " + values[1] + " AND TYPE_ID = " + values[2]);
+		
+		try {
+			//rs.first();
+			while(rs.isLast()) {
+				id = rs.getString(0);
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return id;
+		
+	}
+	
+	private void Exit() {
+		
+	}
+}
